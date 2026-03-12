@@ -34,7 +34,7 @@ import com.salesmanager.shop.store.api.exception.ServiceRuntimeException;
 import com.salesmanager.shop.store.controller.product.facade.ProductInventoryFacade;
 
 @Service("productInventoryFacade")
-@Profile({ "default", "cloud", "gcp", "aws", "mysql", "local" })
+@Profile({ "default", "cloud", "gcp", "aws", "mysql", "local", "docker" })
 public class ProductInventoryFacadeImpl implements ProductInventoryFacade {
 
 	@Autowired
@@ -51,6 +51,9 @@ public class ProductInventoryFacadeImpl implements ProductInventoryFacade {
 
 	@Autowired
 	private PersistableInventoryMapper productInventoryMapper;
+
+	@Autowired
+	private StockNotificationWorker stockNotificationWorker;
 
 
 
@@ -205,10 +208,17 @@ public class ProductInventoryFacadeImpl implements ProductInventoryFacade {
 
 		inventory.setProductId(product.getId());
 
+		int oldQuantity = avail.getProductQuantity() != null ? avail.getProductQuantity() : 0;
 		avail = productInventoryMapper.merge(inventory, avail, store, language);
 		avail.setProduct(product);
 		avail.setMerchantStore(store);
 		saveOrUpdate(avail);
+
+		// trigger async notifications if stock restored from 0
+		int newQuantity = avail.getProductQuantity() != null ? avail.getProductQuantity() : 0;
+		if (oldQuantity == 0 && newQuantity > 0) {
+			stockNotificationWorker.notifySubscribers(product.getId());
+		}
 	}
 
 
