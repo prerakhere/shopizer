@@ -4,4 +4,4 @@ RUN mkdir /files
 COPY target/shopizer.jar /opt/app
 COPY SALESMANAGER.h2.db /
 COPY ./files /files
-CMD ["java", "-jar", "/opt/app/shopizer.jar"]
+CMD ["java", "-Dspring.profiles.active=docker", "-jar", "/opt/app/shopizer.jar"]
