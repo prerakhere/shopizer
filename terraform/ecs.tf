@@ -54,6 +54,10 @@ resource "aws_ecs_task_definition" "shopizer" {
       containerPort = var.container_port
       protocol      = "tcp"
     }]
+    environment = [{
+      name  = "SPRING_PROFILES_ACTIVE"
+      value = "docker"
+    }]
     logConfiguration = {
       logDriver = "awslogs"
       options = {
