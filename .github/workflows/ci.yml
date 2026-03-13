@@ -21,11 +21,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build
-        run: ./mvnw clean install -DskipTests -q
-
       - name: Run tests
         run: ./mvnw test -DfailIfNoTests=false
+
+      - name: Build JAR
+        run: ./mvnw clean package -DskipTests
 
       - name: Upload test reports
         if: always()
@@ -33,3 +33,6 @@ jobs:
         with:
           name: test-reports
           path: '**/target/surefire-reports/*.xml'
+
+      - name: Build Docker image
+        run: docker build -t shopizer:${{ github.sha }} ./sm-shop
